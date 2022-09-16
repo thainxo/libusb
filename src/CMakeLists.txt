@@ -5,13 +5,42 @@ cmake_minimum_required(VERSION 3.10)
 
 project(libusb_library VERSION 0.0.1 LANGUAGES C)
 
+set(PLATFORM_SRC
+  "libusb/os/events_windows.c"
+  "libusb/os/threads_windows.c"
+)
+
+set(OS_SRC
+  "libusb/libusb-1.0.def"
+  "libusb/libusb-1.0.rc"
+  "libusb/os/windows_common.c"
+  "libusb/os/windows_usbdk.c"
+  "libusb/os/windows_winusb.c"
+)
+
+set(LIBUSB_SRC
+  "libusb/core.c"
+  "libusb/descriptor.c"
+  "libusb/hotplug.c"
+  "libusb/io.c"
+  "libusb/strerror.c"
+  "libusb/sync.c"
+  ${PLATFORM_SRC}
+  ${OS_SRC}
+)
+
+
+include_directories(
+  "msvc"
+  "libusb"
+)
+
 add_library(libusb SHARED
-  "libusb.c"
+  ${LIBUSB_SRC}
 )
 
 set_target_properties(libusb PROPERTIES
-  PUBLIC_HEADER libusb.h
-  OUTPUT_NAME "libusb"
+  OUTPUT_NAME "libusb-1.0"
 )
 
 target_compile_definitions(libusb PUBLIC DART_SHARED_LIB)
