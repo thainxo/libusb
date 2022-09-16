@@ -7,9 +7,9 @@ description: |
 output: 'lib/libusb_bindings_generated.dart'
 headers:
   entry-points:
-    - 'src/libusb.h'
-  include-directives:
-    - 'src/libusb.h'
+    - 'src/libusb/libusb.h'
+  # include-directives:
+    # - 'src/libusb/libusb.h'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

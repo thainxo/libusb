@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:libusb/libusb.dart' as libusb;
 
@@ -15,14 +16,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late int sumResult;
+  late int libusb_init;
   late Future<int> sumAsyncResult;
 
   @override
   void initState() {
     super.initState();
-    sumResult = libusb.sum(1, 2);
-    sumAsyncResult = libusb.sumAsync(3, 4);
+    libusb_init = libusb.libusb_init(nullptr);
+    sumAsyncResult = Future<int>.value(0);
+    // sumAsyncResult = 0;
+    // sumAsyncResult = libusb.sumAsync(3, 4);
   }
 
   @override
@@ -47,7 +50,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 spacerSmall,
                 Text(
-                  'sum(1, 2) = $sumResult',
+                  'libusb_init = $libusb_init',
                   style: textStyle,
                   textAlign: TextAlign.center,
                 ),

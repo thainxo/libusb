@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -6,12 +5,16 @@ import 'dart:isolate';
 
 import 'libusb_bindings_generated.dart';
 
+
+int libusb_init(Pointer<Pointer<libusb_context>> ctx) =>
+    _bindings.libusb_init(ctx);
+
 /// A very short-lived native function.
 ///
 /// For very short-lived functions, it is fine to call them on the main isolate.
 /// They will block the Dart execution while running the native function, so
 /// only do this for native functions which are guaranteed to be short-lived.
-int sum(int a, int b) => _bindings.sum(a, b);
+// int sum(int a, int b) => _bindings.sum(a, b);
 
 /// A longer lived native function, which occupies the thread calling it.
 ///
@@ -23,17 +26,17 @@ int sum(int a, int b) => _bindings.sum(a, b);
 ///
 /// 1. Reuse a single isolate for various different kinds of requests.
 /// 2. Use multiple helper isolates for parallel execution.
-Future<int> sumAsync(int a, int b) async {
-  final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
-  final int requestId = _nextSumRequestId++;
-  final _SumRequest request = _SumRequest(requestId, a, b);
-  final Completer<int> completer = Completer<int>();
-  _sumRequests[requestId] = completer;
-  helperIsolateSendPort.send(request);
-  return completer.future;
-}
+// Future<int> sumAsync(int a, int b) async {
+//   final SendPort helperIsolateSendPort = await _helperIsolateSendPort;
+//   final int requestId = _nextSumRequestId++;
+//   final _SumRequest request = _SumRequest(requestId, a, b);
+//   final Completer<int> completer = Completer<int>();
+//   _sumRequests[requestId] = completer;
+//   helperIsolateSendPort.send(request);
+//   return completer.future;
+// }
 
-const String _libName = 'libusb';
+const String _libName = 'libusb-1.0';
 
 /// The dynamic library in which the symbols for [LibusbBindings] can be found.
 final DynamicLibrary _dylib = () {
@@ -51,7 +54,6 @@ final DynamicLibrary _dylib = () {
 
 /// The bindings to the native functions in [_dylib].
 final LibusbBindings _bindings = LibusbBindings(_dylib);
-
 
 /// A request to compute `sum`.
 ///
@@ -108,22 +110,22 @@ Future<SendPort> _helperIsolateSendPort = () async {
     });
 
   // Start the helper isolate.
-  await Isolate.spawn((SendPort sendPort) async {
-    final ReceivePort helperReceivePort = ReceivePort()
-      ..listen((dynamic data) {
-        // On the helper isolate listen to requests and respond to them.
-        if (data is _SumRequest) {
-          final int result = _bindings.sum_long_running(data.a, data.b);
-          final _SumResponse response = _SumResponse(data.id, result);
-          sendPort.send(response);
-          return;
-        }
-        throw UnsupportedError('Unsupported message type: ${data.runtimeType}');
-      });
+  // await Isolate.spawn((SendPort sendPort) async {
+  //   final ReceivePort helperReceivePort = ReceivePort()
+  //     ..listen((dynamic data) {
+  //       // On the helper isolate listen to requests and respond to them.
+  //       if (data is _SumRequest) {
+  //         final int result = _bindings.sum_long_running(data.a, data.b);
+  //         final _SumResponse response = _SumResponse(data.id, result);
+  //         sendPort.send(response);
+  //         return;
+  //       }
+  //       throw UnsupportedError('Unsupported message type: ${data.runtimeType}');
+  //     });
 
-    // Send the the port to the main isolate on which we can receive requests.
-    sendPort.send(helperReceivePort.sendPort);
-  }, receivePort.sendPort);
+  //   // Send the the port to the main isolate on which we can receive requests.
+  //   sendPort.send(helperReceivePort.sendPort);
+  // }, receivePort.sendPort);
 
   // Wait until the helper isolate has sent us back the SendPort on which we
   // can start sending requests.
